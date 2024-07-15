@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Web App</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link href="styles.css" rel="stylesheet" />
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="bg-light">
+    <header class="jumbotron text-center" style="padding: 2rem 10rem">
+      <h1 class="jumbotron-heading">Cell Segmentation using YOLOv8</h1>
+      <p class="lead" style="font-size: 18px">
+        This cell segmentation model utilizes YOLOv8, an advanced Machine
+        Learning algorithm, to accurately identify and segment red (RBC) and
+        white (WBC) blood cells in microscopic images.
+      </p>
+    </header>
+
+    <main class="album py-5">
+      <!-- Page Content -->
+      <div class="container">
+        <form class="upload-data row">
+          <div class="col-xl-6 col-md-6 col-sm-6">
+            <button type="button" class="btn btn-primary col-12" id="upload">
+              Upload
+            </button>
+          </div>
+
+          <div class="col-xl-6 col-md-6 col-sm-6">
+            <button type="button" class="btn btn-success col-12" id="send">
+              Predict
+            </button>
+          </div>
+
+          <!-- Hidden input for API URL -->
+          <input
+            type="hidden"
+            class="form-control mr-2"
+            id="url"
+            placeholder="Enter REST Api url..."
+            value="../predict"
+          />
+
+          <!-- Hidden file input for image upload -->
+          <input
+            name="upload"
+            type="file"
+            id="fileinput"
+            style="position: absolute; top: -500px; display: none"
+          /><br />
+        </form>
+
+        <div class="row">
+          <!-- Team Member 1 -->
+          <div class="col-md-6 mb-3">
+            <div
+              class="card upload-image"
+              style="min-height: 200px; margin-top: 20px"
+            >
+              <div class="card-body text-center">
+                <p id="uploadText" class="card-title mb-0">
+                  Click on "Upload" to insert the image to which you want to
+                  apply the cell segmentation method
+                </p>
+                <div class="image-container">
+                  <img
+                    id="photo"
+                    src=""
+                    alt="Uploaded Cell Image"
+                    class="box-img"
+                    style="display: none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prediction Results -->
+          <div class="col-md-6 mb-3">
+            <div class="card" style="min-height: 200px; margin-top: 20px">
+              <div class="card-body text-center">
+                <p id="predictText" class="card-title mb-0">
+                  Prediction Results
+                </p>
+                <div class="image-container res-part2"></div>
+                <div
+                  class="spinner-border"
+                  role="status"
+                  id="loading"
+                  style="display: none"
+                >
+                  <span class="sr-only">Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="text-muted fixed-bottom">
+      <div class="container text-center">
+        <p>
+          Joana Baião | Updated: June 29, 2024 |
+          <a href="https://joanabaiao.github.io/">My website</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      var mybtn = document.getElementById("startbtn");
+      var myvideo = document.getElementById("video");
+      var mycanvas = document.getElementById("canvas");
+      var myphoto = document.getElementById("photo");
+      var base_data = "";
+
+      function sendRequest(base64Data) {
+        var type = "json";
+        if (base64Data != "" || base64Data != null) {
+          if (type == "imgtobase") {
+            $(".res-part").html("");
+            $(".res-part").html(base64Data);
+          } else if (type == "basetoimg") {
+            var imageData = $("#imgstring").val();
+            $(".res-part").html("");
+            $(".res-part").append(
+              "<img src='data:image/jpeg;base64," + imageData + "' alt='' />"
+            );
+          } else {
+            var url = $("#url").val();
+            $("#loading").show();
+            $("#predictText").hide();
+            $.ajax({
+              url: url,
+              type: "post",
+              cache: false,
+              async: true,
+              crossDomain: true,
+              headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+              },
+              data: JSON.stringify({
+                image: base64Data,
+              }),
+              success: function (res) {
+                $(".res-part").html("");
+                $(".res-part2").html("");
+                var imageData = res.image;
+                $(".res-part2").append(
+                  "<img class='resp-img box-img' src='data:image/jpeg;base64," +
+                    imageData +
+                    "' alt='' />"
+                );
+                // $(".res-part").html("<pre>" + JSON.stringify(res[0], undefined, 2) + "</pre>");
+                $("#loading").hide();
+              },
+            });
+          }
+        }
+      }
+
+      $(document).ready(function () {
+        $("#loading").hide();
+
+        $("#send").click(function (evt) {
+          sendRequest(base_data);
+        });
+
+        $("#upload").click(function (evt) {
+          $("#fileinput").focus().trigger("click");
+        });
+
+        $("#fileinput").change(function () {
+          if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              var url = e.target.result;
+              var img = new Image();
+              img.crossOrigin = "Anonymous";
+              img.onload = function () {
+                var canvas = document.createElement("CANVAS");
+                var ctx = canvas.getContext("2d");
+                canvas.height = this.height;
+                canvas.width = this.width;
+                ctx.drawImage(this, 0, 0);
+                base_data = canvas
+                  .toDataURL("image/jpeg", 1.0)
+                  .replace(/^data:image.+;base64,/, "");
+                canvas = null;
+              };
+              img.src = url;
+              $("#photo").attr("src", url);
+              $("#photo").show();
+              $("#video").hide();
+              $("#uploadText").hide();
+            };
+            reader.readAsDataURL(this.files[0]);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
