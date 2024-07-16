@@ -6,6 +6,8 @@ This project focuses on the segmentation and classification of red and white blo
 
 The project's goal is to offer an efficient and automated pipeline for deploying the cell segmentation and classification model on Azure. It utilizes Docker for containerization and GitHub Actions for continuous integration and continuous deployment (CI/CD).
 
+https://github.com/user-attachments/assets/a8002e48-269e-4156-b3f1-9baa7a370ff6
+
 ## Dataset
 
 The dataset used in this project consists of microscopic images containing red and white blood cells.
