@@ -1,9 +1,9 @@
 import sys, os
-from cellSegmentation.pipeline.training_pipeline import TrainPipeline
-from cellSegmentation.utils.main_utils import decodeImage, encodeImageIntoBase64
+from src.pipeline.training_pipeline import TrainPipeline
+from src.utils.main_utils import decodeImage, encodeImageIntoBase64
 from flask import Flask, request, jsonify, render_template,Response
 from flask_cors import CORS, cross_origin
-from cellSegmentation.constant.application import APP_HOST, APP_PORT
+from src.constant.application import APP_HOST, APP_PORT
 
 app = Flask(__name__)
 CORS(app)
@@ -16,7 +16,7 @@ class ClientApp:
 def trainRoute():
     obj = TrainPipeline()
     obj.run_pipeline()
-    return "Training Successfull!!" 
+    return "Training successfull!" 
 
 
 @app.route("/")
@@ -31,10 +31,11 @@ def predictRoute():
         image = request.json['image']
         decodeImage(image, clApp.filename)
 
-        os.system("yolo task=segment mode=predict model=artifacts/model_trainer/best.pt conf=0.25 source=data/inputImage.jpg save=true")
+        os.system(f"yolo task=segment mode=predict model=models/model_trainer/best.pt conf=0.25 source=reports/prediction_results/inputImage.jpg save=true")
 
         opencodedbase64 = encodeImageIntoBase64("runs/segment/predict/inputImage.jpg")
         result = {"image": opencodedbase64.decode('utf-8')}
+        os.system(f"mv runs/segment/predict/inputImage.jpg reports/prediction_results/inputImage_results.jpg")
         os.system("rm -rf runs")
 
     except ValueError as val:
