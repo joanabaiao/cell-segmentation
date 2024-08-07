@@ -6,20 +6,25 @@ This project focuses on the segmentation and classification of red and white blo
 
 The project's goal is to offer an efficient and automated pipeline for deploying the cell segmentation and classification model on Azure. It utilizes Docker for containerization and GitHub Actions for continuous integration and continuous deployment (CI/CD).
 
+https://github.com/user-attachments/assets/a8002e48-269e-4156-b3f1-9baa7a370ff6
+
 ## Dataset
 
-The dataset used in this project consists of microscopic images containing red and white blood cells.
+The dataset used in this project consists of microscopic images containing red and white blood cells and it is available at: https://universe.roboflow.com/atri-gly8b/cell-p3pcx
 
-The dataset is divided into three subsets:
+The dataset includes is divided into three subsets:
 
 - **Training Set**: 213 images
 - **Validation Set**: 57 images
 - **Test Set**: 71 images
-
+  
 Each subset is structured into the following directories:
 
 - `images/`: Contains the raw microscopic images of blood samples.
 - `annotations/`: Contains the corresponding annotation files in YOLO format, specifying the bounding boxes and class labels for red and white blood cells.
+
+Each image underwent pre-processing, including auto-orientation of pixel data with EXIF orientation stripped and resizing to 640x640 (stretched). To create three versions of each source image, augmentations were applied with a 50% probability of a vertical flip and an equal probability of one of the following 90-degree rotations: none, clockwise, or counter-clockwise.
+
 
 ## Features
 
